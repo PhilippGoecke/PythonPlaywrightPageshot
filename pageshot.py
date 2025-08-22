@@ -32,22 +32,22 @@ def take_screenshot(
     screenshot_bytes = page.screenshot(**screenshot_options)
     return len(screenshot_bytes) if screenshot_bytes else 0
 
-def page_to_image(uri: str, data_dir: Path) -> None:
+def page_to_image(uri: str, data_dir: Path, config: argparse.Namespace) -> None:
     """
     Navigates to a URI and saves a screenshot to the specified data directory.
     """
-    config = argparse.Namespace(
-        browser="chromium",
-        img_type="png",
-        quality=90,
-        scale="css",
-        omit_background=False,
-        full_page=True,
-    )
+    launch_options = {}
+    if config.proxy_server:
+        proxy_config = {"server": config.proxy_server}
+        if config.proxy_username:
+            proxy_config["username"] = config.proxy_username
+        if config.proxy_password:
+            proxy_config["password"] = config.proxy_password
+        launch_options["proxy"] = proxy_config
 
     with sync_playwright() as playwright:
         browser_type = getattr(playwright, config.browser)
-        browser = browser_type.launch()
+        browser = browser_type.launch(**launch_options)
         page = browser.new_page()
 
         try:
@@ -105,7 +105,17 @@ if __name__ == "__main__":
         default="https://www.python.org/",
         help="The URI of the web page to capture (default: %(default)s)",
     )
+    parser.add_argument("--browser", default="chromium", help="Browser to use (chromium, firefox, webkit)")
+    parser.add_argument("--img-type", default="png", choices=["png", "jpeg"], help="Image type")
+    parser.add_argument("--quality", type=int, default=90, help="JPEG quality (0-100)")
+    parser.add_argument("--scale", default="css", choices=["css", "device"], help="Scale of the screenshot")
+    parser.add_argument("--omit-background", action="store_true", help="Omit background from screenshot")
+    parser.add_argument("--no-full-page", dest="full_page", action="store_false", help="Do not take a full page screenshot")
+    parser.add_argument("--proxy-server", help="Proxy server URL (e.g., http://127.0.0.1:8080)")
+    parser.add_argument("--proxy-username", help="Username for proxy authentication")
+    parser.add_argument("--proxy-password", help="Password for proxy authentication")
+
     args = parser.parse_args()
     TARGET_URI = args.uri
 
-    page_to_image(uri=TARGET_URI, data_dir=DATA_DIRECTORY)
+    page_to_image(uri=TARGET_URI, data_dir=DATA_DIRECTORY, config=args)
