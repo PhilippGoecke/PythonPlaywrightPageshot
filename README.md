@@ -226,7 +226,7 @@ git clone https://github.com/PhilippGoecke/PythonPlaywrightPageshot.git
 cd PythonPlaywrightPageshot
 python -m venv venv
 source venv/bin/activate
-pip install playwright
+pip install pytest-playwright
 playwright install
 ```
 
