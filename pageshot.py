@@ -5,13 +5,17 @@ from typing import Optional
 
 from playwright.sync_api import Page, sync_playwright
 
+
 def extract_uri(text: str) -> Optional[str]:
     """Extracts the first URI from a given text."""
     uri_regex = re.compile(r"https?://(?:[a-zA-Z0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F]{2}))+")
     match = uri_regex.search(text)
     return match.group(0) if match else None
 
-def take_dynamic_quality_screenshot(page: Page, imagepath: Path, config: argparse.Namespace) -> int:
+
+def take_dynamic_quality_screenshot(
+    page: Page, imagepath: Path, config: argparse.Namespace
+) -> int:
     """
     Takes a screenshot, reducing quality iteratively if the file size is too large.
     """
@@ -46,13 +50,14 @@ def take_dynamic_quality_screenshot(page: Page, imagepath: Path, config: argpars
 
     return size
 
+
 def page_to_image(uri: str, data_dir: Path) -> None:
     """
     Navigates to a URI and saves a screenshot to the specified data directory.
     """
     config = argparse.Namespace(
         browser="firefox",
-        img_type="jpg",
+        img_type="png",
         quality=90,
         scale="css",
         omit_background=False,
@@ -88,6 +93,7 @@ def page_to_image(uri: str, data_dir: Path) -> None:
             print(f"An error occurred while processing {uri}: {e}")
         finally:
             browser.close()
+
 
 if __name__ == "__main__":
     # In a real application, this could come from command-line arguments or a config file.
