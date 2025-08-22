@@ -24,7 +24,7 @@ RUN cd /usr/lib/x86_64-linux-gnu \
   && ln -s libicuuc.so.76 libicuuc.so.66
 
 ARG USER=playwright
-RUN useradd --shell /bin/bash $USER \
+RUN useradd --create-home --shell /bin/bash $USER \
   && mkdir /playwright \
   && chown $USER /playwright
 USER $USER
