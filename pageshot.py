@@ -63,6 +63,7 @@ def page2img(uri: str) -> None:
 
         page = browser.new_page()
         page.goto(uri)
+        page.wait_for_load_state("load")
 
         if extract_uri(page.url):
             sleep(3)
