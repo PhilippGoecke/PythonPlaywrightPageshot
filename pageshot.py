@@ -1,48 +1,56 @@
-from playwright.sync_api
-import sync_playwright from argparse
-import Namespace
+import argparse
 import re
-from time import sleep
 from pathlib import Path
 from typing import Optional
 
+from playwright.sync_api import Page, sync_playwright
+
 def extract_uri(text: str) -> Optional[str]:
-    uri_regex = re.compile(r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+")
-
+    """Extracts the first URI from a given text."""
+    uri_regex = re.compile(r"https?://(?:[a-zA-Z0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F]{2}))+")
     match = uri_regex.search(text)
+    return match.group(0) if match else None
 
-    if match:
-        return match.group()
+def take_dynamic_quality_screenshot(page: Page, imagepath: Path, config: argparse.Namespace) -> int:
+    """
+    Takes a screenshot, reducing quality iteratively if the file size is too large.
+    """
+    quality = config.quality
+    omit_background = config.omit_background
 
-    return None
-
-def take_pageshot(page, config: Namespace, imagepath: Path) -> int:
-
-    def do_pageshot() -> int:
-        return len(
-            page.screenshot(
-                path=imagepath,
-                type=config.img_type,
-                quality=config.quality,
-                scale=config.scale,
-                omit_background=config.omit_background,
-                full_page=config.full_page,
-            )
+    def attempt_screenshot(current_quality: int, omit_bg: bool) -> int:
+        """Helper to take a screenshot and return its size in bytes."""
+        screenshot_bytes = page.screenshot(
+            path=imagepath,
+            type=config.img_type,
+            quality=current_quality,
+            scale=config.scale,
+            omit_background=omit_bg,
+            full_page=config.full_page,
         )
+        return len(screenshot_bytes)
 
-    pic_size = do_pageshot()
+    size = attempt_screenshot(quality, omit_background)
 
-    if pic_size <= 0:
-        return pic_size
+    # If the initial screenshot is empty, fail early.
+    if size <= 0:
+        return 0
 
-    config.omit_background = False
-    while pic_size > 1024**2 * 1 and config.quality >= 40:
-        config.quality -= 10
-        pic_size = do_pageshot()
-    return pic_size
+    # Reduce quality if the image is larger than 1MB, down to a minimum of 40.
+    while size > 1024**2 and quality >= 40:
+        quality -= 10
+        # On the first quality reduction, disable background transparency if it was enabled
+        if omit_background:
+            omit_background = False
+        size = attempt_screenshot(quality, omit_background)
 
-def page2img(uri: str) -> None:
-    config = Namespace(
+    return size
+
+def page_to_image(uri: str, data_dir: Path) -> None:
+    """
+    Navigates to a URI and saves a screenshot to the specified data directory.
+    """
+    config = argparse.Namespace(
         browser="firefox",
         img_type="jpg",
         quality=90,
@@ -52,36 +60,38 @@ def page2img(uri: str) -> None:
     )
 
     with sync_playwright() as playwright:
-        if config.browser == "firefox":
-            browser_type = playwright.firefox
-        elif config.browser == "webkit":
-            browser_type = playwright.webkit
-        else:
-            browser_type = playwright.chromium
+        browser_type = getattr(playwright, config.browser)
         browser = browser_type.launch()
-
         page = browser.new_page()
-        page.goto(uri)
-        page.wait_for_load_state("load")
 
-        if extract_uri(page.url):
-            sleep(3)
+        try:
+            page.goto(uri)
+            page.wait_for_load_state("networkidle", timeout=15000)
 
-            data_dir = "/playwright/data"
+            if not extract_uri(page.url):
+                print(f"Invalid URI after redirection: {uri!r} -> {page.url!r}")
+                return
 
-            imagepath = Path(data_dir, f"pageshot.{config.img_type}")
+            imagepath = data_dir / f"pageshot.{config.img_type}"
+            data_dir.mkdir(exist_ok=True)
 
-            pic_size = take_pageshot(page, config, imagepath)
+            pic_size = take_dynamic_quality_screenshot(page, imagepath, config)
 
             if pic_size <= 0:
-                print("Failed to load uri")
-            elif pic_size <= 1024**2 * 10:
-                print(f"Pageshot taken in {imagepath}")
+                print(f"Failed to take screenshot of {uri}")
+            elif pic_size <= 10 * 1024**2:  # 10 MB limit
+                print(f"Screenshot saved to {imagepath}")
             else:
-                print("Failed with URI, page too huge")
-        else:
-            print(f"Invalid URI redirection: {uri!r} -> {page.url!r}")
+                print(f"Screenshot for {uri} is too large even after reducing quality.")
 
-        browser.close()
+        except Exception as e:
+            print(f"An error occurred while processing {uri}: {e}")
+        finally:
+            browser.close()
 
-page2img(uri="https://test.de/")
+if __name__ == "__main__":
+    # In a real application, this could come from command-line arguments or a config file.
+    DATA_DIRECTORY = Path("./data")
+    TARGET_URI = "http://www.test.de/"
+
+    page_to_image(uri=TARGET_URI, data_dir=DATA_DIRECTORY)
