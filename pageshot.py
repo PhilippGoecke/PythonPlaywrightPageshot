@@ -100,7 +100,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "uri",
         nargs="?",
-        default="https://playwright.dev/",
+        default="https://www.python.org/",
         help="The URI of the web page to capture (default: %(default)s)",
     )
     args = parser.parse_args()
