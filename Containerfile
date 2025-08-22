@@ -33,6 +33,7 @@ USER $USER
 WORKDIR /playwright
 
 COPY pageshot.py pageshot.py
+RUN chmod +x pageshot.py
 
 RUN python3 -m venv . \
   && source bin/activate \
