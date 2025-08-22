@@ -32,8 +32,7 @@ USER $USER
 
 WORKDIR /playwright
 
-COPY pageshot.py pageshot.py
-RUN chmod +x pageshot.py
+COPY --chmod=+x pageshot.py pageshot.py
 
 RUN python3 -m venv . \
   && source bin/activate \
@@ -42,4 +41,4 @@ RUN python3 -m venv . \
 
 VOLUME /playwright/data
 
-CMD source bin/activate && python pageshot.py "https://playwright.dev"
+CMD pageshot.py "https://playwright.dev"
