@@ -5,13 +5,11 @@ from typing import Optional
 
 from playwright.sync_api import Page, sync_playwright
 
-
 def extract_uri(text: str) -> Optional[str]:
     """Extracts the first URI from a given text."""
     uri_regex = re.compile(r"https?://(?:[a-zA-Z0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F]{2}))+")
     match = uri_regex.search(text)
     return match.group(0) if match else None
-
 
 def take_screenshot(
     page: Page, imagepath: Path, config: argparse.Namespace
@@ -32,13 +30,12 @@ def take_screenshot(
     screenshot_bytes = page.screenshot(**screenshot_options)
     return len(screenshot_bytes) if screenshot_bytes else 0
 
-
 def page_to_image(uri: str, data_dir: Path) -> None:
     """
     Navigates to a URI and saves a screenshot to the specified data directory.
     """
     config = argparse.Namespace(
-        browser="firefox",
+        browser="chromium",
         img_type="png",
         quality=90,
         scale="css",
