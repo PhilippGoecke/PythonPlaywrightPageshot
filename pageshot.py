@@ -59,7 +59,8 @@ def page_to_image(uri: str, data_dir: Path) -> None:
                 print(f"Invalid URI after redirection: {uri!r} -> {page.url!r}")
                 return
 
-            imagepath = data_dir / f"pageshot.{config.img_type}"
+            filename = re.sub(r"[^a-zA-Z0-9.-]", "_", page.url.replace("https://", "").replace("http://", ""))
+            imagepath = data_dir / f"{filename}.{config.img_type}"
             data_dir.mkdir(exist_ok=True)
 
             pic_size = take_screenshot(page, imagepath, config)
@@ -80,6 +81,14 @@ def page_to_image(uri: str, data_dir: Path) -> None:
 if __name__ == "__main__":
     # In a real application, this could come from command-line arguments or a config file.
     DATA_DIRECTORY = Path("./data")
-    TARGET_URI = "http://www.test.de/"
+    parser = argparse.ArgumentParser(description="Take a screenshot of a web page.")
+    parser.add_argument(
+        "uri",
+        nargs="?",
+        default="http://test.de/",
+        help="The URI of the web page to capture (default: %(default)s)",
+    )
+    args = parser.parse_args()
+    TARGET_URI = args.uri
 
     page_to_image(uri=TARGET_URI, data_dir=DATA_DIRECTORY)
