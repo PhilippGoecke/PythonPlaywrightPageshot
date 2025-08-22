@@ -5,7 +5,6 @@ import re
 from time import sleep
 from pathlib import Path
 from typing import Optional
-from PIL import Image
 
 def extract_uri(text: str) -> Optional[str]:
     uri_regex = re.compile(r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+")
@@ -78,8 +77,6 @@ def page2img(uri: str) -> None:
                 print("Failed to load uri")
             elif pic_size <= 1024**2 * 10:
                 print(f"Pageshot taken in {imagepath}")
-                pageshot = Image.open(str(imagepath))
-                pageshot.show()
             else:
                 print("Failed with URI, page too huge")
         else:
