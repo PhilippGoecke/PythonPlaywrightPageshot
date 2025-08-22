@@ -56,7 +56,7 @@ def page_to_image(uri: str, data_dir: Path) -> None:
                 print(f"Invalid URI after redirection: {uri!r} -> {page.url!r}")
                 return
 
-            filename = re.sub(r"[^a-zA-Z0-9.-]", "_", page.url.replace("https://", "").replace("http://", ""))
+            filename = re.sub(r"[^a-zA-Z0-9.-]", "_", page.url.replace("https://", "").replace("http://", "")).rstrip("_")
             imagepath = data_dir / f"{filename}.{config.img_type}"
             data_dir.mkdir(exist_ok=True)
 
