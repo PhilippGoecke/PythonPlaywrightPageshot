@@ -5,11 +5,13 @@ from typing import Optional
 
 from playwright.sync_api import Page, sync_playwright
 
+
 def extract_uri(text: str) -> Optional[str]:
     """Extracts the first URI from a given text."""
     uri_regex = re.compile(r"https?://(?:[a-zA-Z0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F]{2}))+")
     match = uri_regex.search(text)
     return match.group(0) if match else None
+
 
 def take_screenshot(
     page: Page, imagepath: Path, config: argparse.Namespace
@@ -29,6 +31,7 @@ def take_screenshot(
 
     screenshot_bytes = page.screenshot(**screenshot_options)
     return len(screenshot_bytes) if screenshot_bytes else 0
+
 
 def page_to_image(uri: str, data_dir: Path) -> None:
     """
@@ -74,6 +77,25 @@ def page_to_image(uri: str, data_dir: Path) -> None:
         finally:
             browser.close()
 
+import asyncio
+from playwright.async_api import async_playwright
+
+async def main():
+    async with async_playwright() as p:
+        # Launch a browser
+        browser = await p.chromium.launch()
+        page = await browser.new_page()
+
+        # Navigate to the page
+        await page.goto("https://playwright.dev/")
+
+        # Take a screenshot
+        await page.screenshot(path="playwright_dev.png", full_page=True)
+        print("Screenshot saved as playwright_dev.png")
+
+        # Clean up
+        await browser.close()
+
 if __name__ == "__main__":
     # In a real application, this could come from command-line arguments or a config file.
     DATA_DIRECTORY = Path("./data")
@@ -81,7 +103,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "uri",
         nargs="?",
-        default="https://playwright.dev",
+        default="https://playwright.dev/",
         help="The URI of the web page to capture (default: %(default)s)",
     )
     args = parser.parse_args()
