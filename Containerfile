@@ -11,7 +11,7 @@ RUN apt update && apt upgrade -y \
   && apt install -y --no-install-recommends python3-virtualenv python3.13-venv python3-pip \
   # install Playwright dependencies
   && apt install -y --no-install-recommends libglib2.0-0 libnspr4 libnss3 libdbus-1-3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libxcb1 libxkbcommon0 libatspi2.0-0 libx11-6 libxcomposite1 libxdamage1 libxext6 libxfixes3 libxrandr2 libgbm1 libcairo2 libpango-1.0-0 libasound2 \
-  && apt install -y --no-install-recommends libgtk-3-0 libpangocairo-1.0-0 libcairo-gobject2 libgdk-pixbuf2.0-0 \
+  && apt install -y --no-install-recommends libgtk-3-0 libpangocairo-1.0-0 libcairo-gobject2 libgdk-pixbuf-2.0-0 \
   && apt install -y --no-install-recommends libffi-dev libwebp-dev libjpeg-dev libicu-dev \
   # make image smaller
   && rm -rf "/var/lib/apt/lists/*" \
