@@ -96,9 +96,14 @@ async def main():
         await browser.close()
 
 if __name__ == "__main__":
-    # In a real application, this could come from command-line arguments or a config file.
     DATA_DIRECTORY = Path("./data")
     parser = argparse.ArgumentParser(description="Take a screenshot of a web page.")
+    parser.add_argument(
+        "--data-dir",
+        type=Path,
+        default=DATA_DIRECTORY,
+        help="Directory to save screenshots (default: %(default)s)",
+    )
     parser.add_argument(
         "uri",
         nargs="?",
