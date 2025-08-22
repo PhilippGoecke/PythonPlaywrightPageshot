@@ -157,7 +157,7 @@ python -m venv playwright-env
 source playwright-env/bin/activate  # On Windows: playwright-env\Scripts\activate
 
 # Install dependencies
-pip install playwright
+pip install pytest-playwright
 playwright install
 
 # Run the tool
