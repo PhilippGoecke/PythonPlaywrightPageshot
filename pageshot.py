@@ -13,42 +13,24 @@ def extract_uri(text: str) -> Optional[str]:
     return match.group(0) if match else None
 
 
-def take_dynamic_quality_screenshot(
+def take_screenshot(
     page: Page, imagepath: Path, config: argparse.Namespace
 ) -> int:
     """
-    Takes a screenshot, reducing quality iteratively if the file size is too large.
+    Takes a screenshot of the page.
     """
-    quality = config.quality
-    omit_background = config.omit_background
+    screenshot_options = {
+        "path": imagepath,
+        "type": config.img_type,
+        "scale": config.scale,
+        "omit_background": config.omit_background,
+        "full_page": config.full_page,
+    }
+    if config.img_type == "jpeg":
+        screenshot_options["quality"] = config.quality
 
-    def attempt_screenshot(current_quality: int, omit_bg: bool) -> int:
-        """Helper to take a screenshot and return its size in bytes."""
-        screenshot_bytes = page.screenshot(
-            path=imagepath,
-            type=config.img_type,
-            quality=current_quality,
-            scale=config.scale,
-            omit_background=omit_bg,
-            full_page=config.full_page,
-        )
-        return len(screenshot_bytes)
-
-    size = attempt_screenshot(quality, omit_background)
-
-    # If the initial screenshot is empty, fail early.
-    if size <= 0:
-        return 0
-
-    # Reduce quality if the image is larger than 1MB, down to a minimum of 40.
-    while size > 1024**2 and quality >= 40:
-        quality -= 10
-        # On the first quality reduction, disable background transparency if it was enabled
-        if omit_background:
-            omit_background = False
-        size = attempt_screenshot(quality, omit_background)
-
-    return size
+    screenshot_bytes = page.screenshot(**screenshot_options)
+    return len(screenshot_bytes) if screenshot_bytes else 0
 
 
 def page_to_image(uri: str, data_dir: Path) -> None:
@@ -80,14 +62,14 @@ def page_to_image(uri: str, data_dir: Path) -> None:
             imagepath = data_dir / f"pageshot.{config.img_type}"
             data_dir.mkdir(exist_ok=True)
 
-            pic_size = take_dynamic_quality_screenshot(page, imagepath, config)
+            pic_size = take_screenshot(page, imagepath, config)
 
             if pic_size <= 0:
                 print(f"Failed to take screenshot of {uri}")
             elif pic_size <= 10 * 1024**2:  # 10 MB limit
                 print(f"Screenshot saved to {imagepath}")
             else:
-                print(f"Screenshot for {uri} is too large even after reducing quality.")
+                print(f"Screenshot for {uri} is too large.")
 
         except Exception as e:
             print(f"An error occurred while processing {uri}: {e}")
