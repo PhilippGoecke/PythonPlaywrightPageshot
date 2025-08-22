@@ -36,8 +36,9 @@ COPY pageshot.py pageshot.py
 RUN python3 -m venv . \
   && source bin/activate \
   && pip install pytest-playwright \
+  && playwright install-deps \
   && playwright install
 
 VOLUME /playwright/data
 
-CMD source bin/activate && python pageshot.py
+CMD source bin/activate && python pageshot.py "https://playwright.dev"
