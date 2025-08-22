@@ -43,15 +43,15 @@
 **Option 1: Python Environment**
 ```bash
 # Install Python dependencies
-pip install playwright
+pip install pytest-playwright
 playwright install
 ```
 
 **Option 2: Container Environment**
 ```bash
 # Install container runtime
-sudo apt update && sudo apt install -y podman
-# or use Docker: sudo apt install -y docker.io
+apt update && apt install -y podman
+# or use Docker: apt install -y docker.io
 ```
 
 ### ⚡ Basic Usage
