@@ -51,8 +51,21 @@ def page_to_image(uri: str, data_dir: Path, config: argparse.Namespace) -> None:
         page = browser.new_page()
 
         try:
-            page.goto(uri)
-            page.wait_for_load_state("networkidle", timeout=15000)
+            page.goto(uri, wait_until="networkidle")
+            # Wait for all images to be loaded
+            page.evaluate(
+                """
+                const images = Array.from(document.images);
+                const promises = images.map(img => {
+                    if (img.complete) return Promise.resolve();
+                    return new Promise((resolve, reject) => {
+                        img.addEventListener('load', resolve);
+                        img.addEventListener('error', reject);
+                    });
+                });
+                Promise.all(promises);
+                """
+            )
 
             if not extract_uri(page.url):
                 print(f"Invalid URI after redirection: {uri!r} -> {page.url!r}")
@@ -110,7 +123,7 @@ if __name__ == "__main__":
         default="https://www.python.org/",
         help="The URI of the web page to capture (default: %(default)s)",
     )
-    parser.add_argument("--browser", default="chromium", help="Browser to use (chromium, firefox, webkit)")
+    parser.add_argument("--browser", default="firefox", help="Browser to use (chromium, firefox, webkit)")
     parser.add_argument("--img-type", default="png", choices=["png", "jpeg"], help="Image type")
     parser.add_argument("--quality", type=int, default=90, help="JPEG quality (0-100)")
     parser.add_argument("--scale", default="css", choices=["css", "device"], help="Scale of the screenshot")
