@@ -22,6 +22,11 @@ sudo apt -y install podman
 Here's a quick example of how to take a screenshot of the Playwright website:
 
 ```bash
+python pageshot.py "https://playwright.dev/"
+```
+
+Run in Podman
+```bash
 bash podman-run-playwright.bash
 ```
 
