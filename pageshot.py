@@ -52,21 +52,7 @@ def page_to_image(uri: str, data_dir: Path, config: argparse.Namespace) -> None:
         page = browser.new_page()
 
         try:
-            page.goto(uri, wait_until="networkidle")
-            # Wait for all images to be loaded
-            page.evaluate(
-                """
-                const images = Array.from(document.images);
-                const promises = images.map(img => {
-                    if (img.complete) return Promise.resolve();
-                    return new Promise((resolve, reject) => {
-                        img.addEventListener('load', resolve);
-                        img.addEventListener('error', reject);
-                    });
-                });
-                Promise.all(promises);
-                """
-            )
+            page.goto(uri, wait_until="networkidle", timeout=15000)
 
             if not extract_uri(page.url):
                 print(f"Invalid URI after redirection: {uri!r} -> {page.url!r}")
