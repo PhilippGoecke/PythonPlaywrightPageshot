@@ -29,7 +29,9 @@ RUN cd /usr/lib/x86_64-linux-gnu \
 ARG USER=playwright
 RUN useradd --create-home --shell /bin/bash $USER \
   && mkdir /playwright \
-  && chown $USER /playwright
+  && mkdir /playwright/data \
+  && chown -R $USER /playwright \
+  && chmod 757 /playwright/data
 USER $USER
 
 WORKDIR /playwright
