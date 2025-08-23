@@ -43,6 +43,8 @@
 **Option 1: Python Environment**
 ```bash
 # Install Python dependencies
+python3 -m venv .
+source bin/activate
 pip install pytest-playwright
 playwright install
 ```
