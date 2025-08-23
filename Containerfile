@@ -43,4 +43,4 @@ RUN python3 -m venv . \
 
 VOLUME /playwright/data
 
-CMD python pageshot.py "https://playwright.dev"
+CMD python3 pageshot.py "https://playwright.dev"
